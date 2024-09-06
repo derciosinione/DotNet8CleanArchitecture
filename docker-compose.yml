@@ -1,0 +1,47 @@
+services:
+#  vpn:
+#    image: dperson/openvpn-client
+#    container_name: vpn
+#    cap_add:
+#      - NET_ADMIN
+#    volumes:
+#      - ./vpn-config:/vpn  
+#    command: "-f -c /vpn/vpn-config.ovpn"
+#    
+  app:
+    build:
+      context: .
+      dockerfile: R2Y_2024_API/Dockerfile
+    container_name: R2Y_2024_API
+    network_mode: "bridge"
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=R2Y2024.Cert
+      - ASPNETCORE_DATAPROTECTION__KEYS__PATH=/dataProtectionKeys
+    depends_on:
+      - sqlserver
+    volumes:
+      - ./R2Y_2024_API/https:/https
+      - ./dataProtectionKeys:/dataProtectionKeys
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: NetSigmaSQLDbServer
+    environment:
+      SA_PASSWORD: "@DBR2Y2024!"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"  
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+volumes:
+  sqlserver-data:
+
+
